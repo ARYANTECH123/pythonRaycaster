@@ -15,3 +15,4 @@ The algorithm, though it may appear complex, is actually really simple and fast,
 In order to change the map, simploy edit the 64 element long `world` list. it is formatted so thet a `0` is a space and a `1` is a block.
 
 ## Screenshots
+[](https://github.com/ARYANTECH123/pythonRaycaster/blob/main/image.png)
