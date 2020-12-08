@@ -6,8 +6,6 @@ from OpenGL.GLUT import *
 from math import radians, sin, cos, tan, sqrt
 
 '''
-Aryan Garg, 12-A1, SRGS Whitefield
-Computer science project
 
 Raycasting engine, written in python using OpenGl, GLU, and GLUT
 
