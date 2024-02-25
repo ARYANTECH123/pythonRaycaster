@@ -14,13 +14,8 @@ Raycasting engine, written in python using OpenGl, GLU, and GLUT
 
 # Accesory function
 def FixAng(angle):
-    a = angle
-    if(angle>359):
-        a -= 360
-    elif(angle<0):
-        a += 360
-    return a
-
+    return angle%360
+    
 # The map that player exists in
 world = [
     1,1,1,1,1,1,1,1,
