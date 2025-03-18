@@ -157,7 +157,7 @@ def drawRays2d():
             rx = (py-ry)*Tan+px
             yo = -64
             xo = -yo*Tan
-        elif(radians(ra) < -0.001): # Looking down
+        elif(sin(radians(ra)) < -0.001): # Looking down
             ry = ((int(py) >> 6) << 6) + 64
             rx = (py-ry)*Tan+px
             yo = 64
