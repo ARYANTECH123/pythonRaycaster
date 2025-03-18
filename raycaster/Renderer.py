@@ -8,11 +8,11 @@ class Renderer:
         self.FOV = 60
         self.num_rays = 60
 
-    def draw_scene(self):
+    def draw_scene(self, player):
         self.map.draw()
-        for player in self.players:
-            player.draw()
-            self.cast_rays(player)
+        player.draw()
+        self.cast_rays(player)  # Raycasting specific to this player
+
 
     def cast_rays(self, player):
         ra = player.pa + (self.FOV / 2)

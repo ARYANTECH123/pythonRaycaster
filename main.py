@@ -2,47 +2,62 @@ from raycaster import Map, Player, Renderer
 from OpenGL.GL import *
 from OpenGL.GLU import *
 from OpenGL.GLUT import *
+import multiprocessing
 import time
 
-last_time = time.time()
+# The per-player GLUT window runner
+def run_player(player_id, world, key_bindings):
+    # Create map & player locally
+    map_obj = Map(world, 8, 8, 64)
+    player = Player(150 if player_id == 1 else 300, 400, 90, key_bindings, map_obj)
+    renderer = Renderer(map_obj, [player])  # Only render this player!
 
-def keyboard_down(key, x, y):
-    try:
-        key_char = key.decode()
-        for player in players:
+    last_time = time.time()
+
+    # Input handlers specific to THIS process
+    def keyboard_down(key, x, y):
+        try:
+            key_char = key.decode()
             if key_char in player.key_bindings.values():
                 player.keys_pressed.add(key_char)
-    except UnicodeDecodeError:
-        print(f"Ignored non-decodable key: {key}")
+        except UnicodeDecodeError:
+            pass
 
-
-def keyboard_up(key, x, y):
-    try:
-        key_char = key.decode()
-        for player in players:
+    def keyboard_up(key, x, y):
+        try:
+            key_char = key.decode()
             if key_char in player.keys_pressed:
                 player.keys_pressed.remove(key_char)
-    except UnicodeDecodeError:
-        print(f"Ignored non-decodable key: {key}")
+        except UnicodeDecodeError:
+            pass
 
+    def display():
+        nonlocal last_time
+        current_time = time.time()
+        delta_time = current_time - last_time
+        last_time = current_time
 
-            
-def display():
-    global last_time
-    current_time = time.time()
-    delta_time = current_time - last_time
-    last_time = current_time
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
+        player.move(delta_time)
+        renderer.draw_scene(player)
+        glutSwapBuffers()
 
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
+    # GLUT setup
+    glutInit()
+    glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB)
+    glutInitWindowSize(1024, 512)
+    glutCreateWindow(f"Player {player_id}".encode())
+    glClearColor(0.3, 0.3, 0.3, 0)
+    gluOrtho2D(0, 1024, 512, 0)
 
-    for player in players:
-        player.move(delta_time)  # Pass delta_time
+    glutKeyboardFunc(keyboard_down)
+    glutKeyboardUpFunc(keyboard_up)
+    glutDisplayFunc(display)
+    glutIdleFunc(display)
 
-    renderer.draw_scene()
-    glutSwapBuffers()
+    glutMainLoop()
 
-
-# ====== Map and Players setup ======
+# ==== Shared World Data ====
 world = [
     1,1,1,1,1,1,1,1,
     1,1,0,1,0,0,0,1,
@@ -54,30 +69,19 @@ world = [
     1,0,0,0,0,0,0,1
 ]
 
-map_obj = Map(world, 8, 8, 64)
+if __name__ == "__main__":
+    multiprocessing.set_start_method('spawn')  # Safer on Windows
 
-player1 = Player(150, 400, 90, {'FORWARD': 'z', 'BACKWARD': 's', 'LEFT': 'q', 'RIGHT': 'd'}, map_obj)
-player2 = Player(300, 400, 90, {'FORWARD': 'i', 'BACKWARD': 'k', 'LEFT': 'j', 'RIGHT': 'l'}, map_obj)
+    # Define key bindings per player
+    player1_keys = {'FORWARD': 'z', 'BACKWARD': 's', 'LEFT': 'q', 'RIGHT': 'd'}
+    player2_keys = {'FORWARD': 'i', 'BACKWARD': 'k', 'LEFT': 'j', 'RIGHT': 'l'}
 
-players = [player1, player2]
-renderer = Renderer(map_obj, players)
+    # Create processes
+    p1 = multiprocessing.Process(target=run_player, args=(1, world, player1_keys))
+    p2 = multiprocessing.Process(target=run_player, args=(2, world, player2_keys))
 
+    p1.start()
+    p2.start()
 
-# ====== GLUT Initialization ======
-
-glutInit()
-glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB)
-glutInitWindowSize(1024, 512)
-glutCreateWindow(b"Raycasting Engine")
-
-# Set up 2D orthographic projection
-glClearColor(0.3, 0.3, 0.3, 0)
-gluOrtho2D(0, 1024, 512, 0)
-
-# Register Callbacks AFTER glutInit()
-glutKeyboardFunc(keyboard_down)
-glutKeyboardUpFunc(keyboard_up)
-glutDisplayFunc(display)
-glutIdleFunc(display)
-
-glutMainLoop()
+    p1.join()
+    p2.join()
