@@ -1,40 +1,82 @@
 import socket
 import threading
 import json
+import struct
 
-clients = {}  # key: conn, value: player_id
-players_state = {}  # key: player_id, value: {px, py, pa}
+clients = {}  # conn: player_id
+players_state = {}  # player_id: {px, py, pa}
+
+# === Helper functions ===
+
+def send_message(conn, message_dict):
+    message = json.dumps(message_dict).encode()
+    length = struct.pack('!I', len(message))
+    conn.sendall(length + message)
+
+def recv_exact(sock, n):
+    data = b''
+    while len(data) < n:
+        packet = sock.recv(n - len(data))
+        if not packet:
+            return None
+        data += packet
+    return data
+
+def broadcast():
+    print(f"[SERVER] Broadcasting: {players_state}")
+    for conn in list(clients.keys()):
+        try:
+            send_message(conn, players_state)
+        except Exception as e:
+            print(f"[SERVER] Broadcast error: {e}")
+            conn.close()
+            clients.pop(conn, None)
 
 def handle_client(conn, addr, player_id):
     print(f"[SERVER] New connection from {addr}")
     clients[conn] = player_id
+
+    # Step 1: Send init_id
+    send_message(conn, {"init_id": player_id})
+    print(f"[SERVER] Sent init_id to {addr}")
+
+    # Step 2: Wait for ACK before broadcasting
+    raw_len = recv_exact(conn, 4)
+    if not raw_len:
+        print(f"[SERVER] No ACK received from {addr}")
+        return
+    msg_len = struct.unpack('!I', raw_len)[0]
+    data = recv_exact(conn, msg_len)
+    ack_msg = json.loads(data.decode())
+    if 'ack' not in ack_msg:
+        print(f"[SERVER] Invalid ACK from {addr}")
+        return
+    print(f"[SERVER] Received ACK from {addr}")
+
+    # Now safe to broadcast
+    broadcast()
+
     try:
         while True:
-            data = conn.recv(1024).decode()
-            if not data:
+            raw_len = recv_exact(conn, 4)
+            if not raw_len:
                 break
-            # Update player state
-            message = json.loads(data)
+            msg_len = struct.unpack('!I', raw_len)[0]
+            data = recv_exact(conn, msg_len)
+            message = json.loads(data.decode())
             players_state[player_id] = message
 
-            # Broadcast to all clients
             broadcast()
     except Exception as e:
         print(f"[SERVER] Error: {e}")
     finally:
         print(f"[SERVER] Connection lost: {addr}")
         conn.close()
-        clients.pop(conn, None)
-        players_state.pop(player_id, None)
-
-def broadcast():
-    for conn in clients:
-        try:
-            # Send full game state
-            state_json = json.dumps(players_state)
-            conn.sendall(state_json.encode())
-        except:
-            pass  # Ignore send errors for now
+        if conn in clients:
+            clients.pop(conn)
+        if player_id in players_state:
+            players_state.pop(player_id)
+        broadcast()
 
 def start_server(host='127.0.0.1', port=5555):
     server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -49,9 +91,11 @@ def start_server(host='127.0.0.1', port=5555):
         player_id = next_player_id
         next_player_id += 1
 
-        # Init player
+        # Initialize player's state
         players_state[player_id] = {"px": 150, "py": 400, "pa": 90}
-        thread = threading.Thread(target=handle_client, args=(conn, addr, player_id))
+
+        # Start handler
+        thread = threading.Thread(target=handle_client, args=(conn, addr, player_id), daemon=True)
         thread.start()
 
 if __name__ == "__main__":

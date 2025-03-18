@@ -70,8 +70,8 @@ def display():
     # Draw remote players (optional, if desired)
     glColor3f(0.0, 1.0, 0.0)  # Different color for remote
     for remote_id, remote_data in network.players_state.items():
-        # Skip rendering ourself (if needed)
-        if abs(remote_data['px'] - player.px) < 1e-2 and abs(remote_data['py'] - player.py) < 1e-2:
+        # Skip rendering ourself
+        if remote_id == str(network.my_id):  # IDs are string keys after JSON
             continue
         glPointSize(6)
         glBegin(GL_POINTS)
@@ -79,6 +79,8 @@ def display():
         glEnd()
 
     glutSwapBuffers()
+    print(f"[CLIENT] Rendering players_state: {network.players_state}")
+
 
 # === GLUT INITIALIZATION ===
 glutInit()
