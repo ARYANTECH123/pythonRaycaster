@@ -12,10 +12,17 @@ Raycasting engine, written in python using OpenGl, GLU, and GLUT
 
 '''
 
-# Accesory function
-def FixAng(angle):
-    return angle%360
-    
+KEYS = {
+    "FORWARD":'z',
+    "LEFT":'q',
+    "BACKWARD":'s',
+    "RIGHT":'d',
+    "MISCELLANOUS":'a'
+}
+
+FOV = 60 # 60 is best for now
+
+
 # The map that player exists in
 world = [
     1,1,1,1,1,1,1,1,
@@ -33,6 +40,13 @@ mapS = 64
 mapX = 8
 mapY = 8
 
+# Player position variables
+px, py, pa, pdx, pdy = 0,0,0,0,0
+
+# Accesory function
+def FixAng(angle):
+    return angle%360
+
 # Draws 2D map
 def drawMap2d():
 
@@ -49,9 +63,6 @@ def drawMap2d():
             glVertex(mapS+xo-1, mapS+yo-1)
             glVertex(mapS+xo-1, yo+1)
             glEnd()
-
-# Player position variables
-px, py, pa, pdx, pdy = 0,0,0,0,0
 
 # Draws 2D player
 def drawPlayer2d(px, py, pa, pdx, pdy):
@@ -71,23 +82,23 @@ def drawPlayer2d(px, py, pa, pdx, pdy):
 # Handles keyboard input callbacks
 def buttons(key, x, y):
     global px, py, pa, pdx, pdy
-    if(ord(key) == ord('w')):
+    if(ord(key) == ord(KEYS["FORWARD"])):
         px += pdx*5
         py += pdy*5
-    elif(ord(key) == ord('a')):
+    elif(ord(key) == ord(KEYS["LEFT"])):
         pa += 5
         pa = FixAng(pa)
         pdx=cos(radians(pa))
         pdy=-sin(radians(pa))
-    elif(ord(key) == ord('d')):
+    elif(ord(key) == ord(KEYS["RIGHT"])):
         pa -= 5
         pa = FixAng(pa)
         pdx=cos(radians(pa))
         pdy=-sin(radians(pa))
-    elif(ord(key) == ord('s')):
+    elif(ord(key) == ord(KEYS["BACKWARD"])):
         px -= pdx*5
         py -= pdy*5
-    elif(ord(key) == ord('q')):
+    elif(ord(key) == ord(KEYS["MISCELLANOUS"])):
         px = x
         py = y
     glutPostRedisplay()
@@ -115,7 +126,7 @@ def drawRays2d():
     #ra is the ray angle
     ra = FixAng(pa + 30)
 
-    for r in range(1, 60): # We are drawing total 60 rays, for a 60 degree field of view
+    for r in range(1, FOV): # We are drawing total 60 rays, for a 60 degree field of view
 
         # Checking vertical wall intercept
         dof, side, disV = 0, 0, 10000
@@ -230,7 +241,7 @@ def display():
 glutInit()
 glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB)
 glutInitWindowSize(1024, 510)
-glutCreateWindow("pyopengl raycater")
+glutCreateWindow(b"pyopengl raycater")
 init()
 glutDisplayFunc(display)
 glutIdleFunc(display)
