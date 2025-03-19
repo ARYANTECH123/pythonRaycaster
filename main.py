@@ -72,7 +72,7 @@ def display():
         glEnd()
 
     glutSwapBuffers()
-    print(f"[CLIENT] Rendering players_state: {network.players_state}")
+    # print(f"[CLIENT] Rendering players_state: {network.players_state}") # DEBUG
 
 
 # === GLUT INITIALIZATION ===

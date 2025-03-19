@@ -18,7 +18,6 @@ class Renderer:
 
         # Draws sky
         sky_color = self.map.get_color("sky")
-        print(f"--- SKY COLOR {sky_color} ---")
         glColor3ub(*sky_color)
         glBegin(GL_QUADS)
         glVertex(526,  0)
@@ -29,7 +28,6 @@ class Renderer:
 
         #Draws floor
         ground_color = self.map.get_color("ground")
-        print(f"--- GROUND COLOR {ground_color} ---")
         glColor3ub(*ground_color)
         glBegin(GL_QUADS)
         glVertex2i(526,160)

@@ -59,7 +59,7 @@ class ClientNetwork:
 
                 else:
                     self.players_state = message
-                    print(f"[CLIENT] Updated players_state: {self.players_state}")
+                    # print(f"[CLIENT] Updated players_state: {self.players_state}") # DEBUG
         except Exception as e:
             print(f"[CLIENT] Listen error: {e}")
             self.running = False
