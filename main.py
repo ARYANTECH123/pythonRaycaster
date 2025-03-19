@@ -2,7 +2,7 @@ from raycaster import Map, Player, Renderer
 from OpenGL.GL import *
 from OpenGL.GLU import *
 from OpenGL.GLUT import *
-from client_network import ClientNetwork
+from multiplayer import ClientNetwork
 import time
 import threading
 
