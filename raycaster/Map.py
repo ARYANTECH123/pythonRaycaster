@@ -2,11 +2,12 @@ from OpenGL.GL import *
 import json
 
 class Map:
-    def __init__(self, grid, mapX, mapY, mapS):
+    def __init__(self, grid, mapX, mapY, mapS, colorMap):
         self.grid = grid
         self.mapX = mapX # Map width
         self.mapY = mapY # Map height
         self.mapS = mapS # Tile size in pixels. Should be 32 to 128. Ideally 64
+        self.colorMap = colorMap
     
     def is_wall(self, mx, my):
         if 0 <= mx < self.mapX and 0 <= my < self.mapY:
@@ -34,7 +35,8 @@ class Map:
             "grid": self.grid,
             "mapX": self.mapX,
             "mapY": self.mapY,
-            "mapS": self.mapS
+            "mapS": self.mapS,
+            "colorMap": self.colorMap
         }
         with open(filename, 'w') as f:
             json.dump(map_data, f)
@@ -45,15 +47,27 @@ class Map:
         with open(filename, 'r') as f:
             map_data = json.load(f)
         print(f"[MAP] Loaded map from {filename}")
-        return cls(map_data["grid"], map_data["mapX"], map_data["mapY"], map_data["mapS"])
+        return cls(map_data["grid"], map_data["mapX"], map_data["mapY"], map_data["mapS"], map_data["colorMap"])
 
     def map_to_dict(self):
         return {
             "grid": self.grid,
             "mapX": self.mapX,
             "mapY": self.mapY,
-            "mapS": self.mapS
+            "mapS": self.mapS,
+            "colorMap": self.colorMap
         }
+    
+    def get_color(self, texture):
+        try: 
+            color = self.colorMap[texture]
+        except:
+            color = (1,0,1) # MAGENTA FOR ERROR
+            print(f"[MAP] TEXTURE {texture} DOES NOT EXIST")
+        return color
+
+
+    
 
 
 if __name__ == "__main__":
@@ -72,14 +86,21 @@ if __name__ == "__main__":
     1,0,0,0,0,0,0,1
     ]
 
+    colorMap = {
+        "ground":(74,194,44),
+        "sky":(235,255,254),
+        "wall":(100,100,100)
+    }
+
     map_info = {
         "grid": world,
         "mapX": 8,
         "mapY": 8,
-        "mapS": 64
+        "mapS": 64,
+        "colorMap":colorMap
     }
 
-    map = Map(map_info['grid'], map_info['mapX'], map_info['mapY'], map_info['mapS'])
+    map = Map(map_info['grid'], map_info['mapX'], map_info['mapY'], map_info['mapS'], map_info['colorMap'])
 
     map.save_to_file('maps/aryantech123.json')
 
@@ -108,10 +129,11 @@ if __name__ == "__main__":
         "grid": world,
         "mapX": 16,
         "mapY": 16,
-        "mapS": 64
+        "mapS": 64,
+        "colorMap":colorMap
     }
 
-    map = Map(map_info['grid'], map_info['mapX'], map_info['mapY'], map_info['mapS'])
+    map = Map(map_info['grid'], map_info['mapX'], map_info['mapY'], map_info['mapS'], map_info['colorMap'])
 
     map.save_to_file('maps/empty_l.json')
 
@@ -140,9 +162,10 @@ if __name__ == "__main__":
         "grid": world,
         "mapX": 16,
         "mapY": 16,
-        "mapS": 64
+        "mapS": 32,
+        "colorMap":colorMap
     }
 
-    map = Map(map_info['grid'], map_info['mapX'], map_info['mapY'], map_info['mapS'])
+    map = Map(map_info['grid'], map_info['mapX'], map_info['mapY'], map_info['mapS'], map_info['colorMap'])
 
     map.save_to_file('maps/house_l.json')

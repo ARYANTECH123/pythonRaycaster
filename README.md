@@ -41,7 +41,6 @@ Currently I plan on making
 - Map generation (maybe mazelik/terrainlike)
 - Game mechanics (not yet determined)
 - Improve graphics
-  - Sky/Ground
   - Directional light source (N/S/W/E)
   - Lighting depends on distance
 

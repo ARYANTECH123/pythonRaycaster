@@ -15,6 +15,29 @@ class Renderer:
 
 
     def cast_rays(self, player):
+
+        # Draws sky
+        sky_color = self.map.get_color("sky")
+        print(f"--- SKY COLOR {sky_color} ---")
+        glColor3ub(*sky_color)
+        glBegin(GL_QUADS)
+        glVertex(526,  0)
+        glVertex(1006,  0)
+        glVertex(1006,160)
+        glVertex(526,160)
+        glEnd()
+
+        #Draws floor
+        ground_color = self.map.get_color("ground")
+        print(f"--- GROUND COLOR {ground_color} ---")
+        glColor3ub(*ground_color)
+        glBegin(GL_QUADS)
+        glVertex2i(526,160)
+        glVertex2i(1006,160)
+        glVertex2i(1006,320)
+        glVertex2i(526,320)
+        glEnd()
+
         ra = player.pa + (self.FOV / 2)
         for r in range(self.num_rays):
             ray_angle = radians(ra)
@@ -48,7 +71,7 @@ class Renderer:
                 line_height = 320
             line_offset = 160 - line_height / 2
 
-            glColor3f(1.0, 0.0, 0.0)
+            glColor3ub(*self.map.get_color("wall"))
             glLineWidth(8)
             glBegin(GL_LINES)
             glVertex2i(r * 8 + 530, int(line_offset))

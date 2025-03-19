@@ -15,7 +15,7 @@ while network.map_data is None:
     print("[CLIENT] Waiting for map...")
 
 map_info = network.map_data
-map_obj = Map(map_info['grid'], map_info['mapX'], map_info['mapY'], map_info['mapS'])
+map_obj = Map(map_info['grid'], map_info['mapX'], map_info['mapY'], map_info['mapS'], map_info["colorMap"])
 
 # You can adjust keybindings per client instance
 key_bindings = {'FORWARD': 'z', 'BACKWARD': 's', 'LEFT': 'q', 'RIGHT': 'd'}
