@@ -2,14 +2,12 @@ import socket
 import threading
 import json
 import struct
+import sys
+import os
 from raycaster import Map
 
 clients = {}  # conn: player_id
 players_state = {}  # player_id: {px, py, pa}
-
-# Server Map Definition
-
-map_data = Map.load_from_file('maps/house_l.json').map_to_dict()
 
 # === Helper functions ===
 
@@ -37,7 +35,7 @@ def broadcast():
             conn.close()
             clients.pop(conn, None)
 
-def handle_client(conn, addr, player_id):
+def handle_client(conn, addr, player_id, map_data):
     print(f"[SERVER] New connection from {addr}")
     clients[conn] = player_id
 
@@ -94,7 +92,44 @@ def handle_client(conn, addr, player_id):
             players_state.pop(player_id)
         broadcast()
 
+
+def choose_map():
+    MAPS_DIRECTORY = 'maps/'
+
+    # List all files in the maps directory
+    files = [f for f in os.listdir(MAPS_DIRECTORY) if os.path.isfile(os.path.join(MAPS_DIRECTORY, f))]
+    
+    if not files:
+        print("No map files found in the directory!")
+        return None
+
+    # Display files
+    print("Available maps:")
+    for idx, filename in enumerate(files):
+        print(f"{idx + 1}. {filename}")
+
+    # Ask user to choose
+    while True:
+        try:
+            choice = int(input("Choose a map by number: ")) - 1
+            if 0 <= choice < len(files):
+                choosen_map = files[choice]
+                break
+            else:
+                print("Invalid choice. Please choose a valid number.")
+        except ValueError:
+            print("Invalid input. Please enter a number.")
+
+    # Load and return map
+    print(f"Loading map: {choosen_map}")
+    return Map.load_from_file(os.path.join(MAPS_DIRECTORY, choosen_map)).map_to_dict()
+
+
 def start_server(host='127.0.0.1', port=5555):
+
+    # Map
+    map_data = choose_map()
+
     server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     server.bind((host, port))
     server.listen()
@@ -108,11 +143,13 @@ def start_server(host='127.0.0.1', port=5555):
         next_player_id += 1
 
         # Initialize player's state
-        players_state[player_id] = {"px": 150, "py": 400, "pa": 90}
+        players_state[player_id] = {"px": 150, "py": 400, "pa": 90} # [ ] TODO: make a spawnpoint on map as a cell
 
         # Start handler
-        thread = threading.Thread(target=handle_client, args=(conn, addr, player_id), daemon=True)
+        thread = threading.Thread(target=handle_client, args=(conn, addr, player_id, map_data), daemon=True)
         thread.start()
 
 if __name__ == "__main__":
+    # Server Map Definition
+    
     start_server()
