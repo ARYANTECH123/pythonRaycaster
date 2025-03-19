@@ -10,6 +10,8 @@ class ClientNetwork:
         self.players_state = {}
         self.my_id = None
         self.running = True
+        self.map_data = None
+
 
         # Start listening
         thread = threading.Thread(target=self.listen, daemon=True)
@@ -50,6 +52,10 @@ class ClientNetwork:
                     length = struct.pack('!I', len(ack))
                     self.server.sendall(length + ack)
                     print("[CLIENT] Sent ACK to server")
+
+                elif 'map_data' in message:
+                    self.map_data = message['map_data']
+                    print(f"[CLIENT] Received map data: {self.map_data}")
 
                 else:
                     self.players_state = message

@@ -6,6 +6,25 @@ import struct
 clients = {}  # conn: player_id
 players_state = {}  # player_id: {px, py, pa}
 
+# Server Map Definition
+world = [
+    1,1,1,1,1,1,1,1,
+    1,1,0,1,0,0,0,1,
+    1,0,0,0,0,1,0,1,
+    1,1,1,0,0,0,0,1,
+    1,0,0,0,0,0,0,1,
+    1,0,0,0,0,0,0,1,
+    1,0,0,0,0,0,0,1,
+    1,0,0,0,0,0,0,1
+]
+
+map_data = {
+    "grid": world,
+    "mapX": 8,
+    "mapY": 8,
+    "mapS": 64
+}
+
 # === Helper functions ===
 
 def send_message(conn, message_dict):
@@ -39,6 +58,10 @@ def handle_client(conn, addr, player_id):
     # Step 1: Send init_id
     send_message(conn, {"init_id": player_id})
     print(f"[SERVER] Sent init_id to {addr}")
+
+    # Send map data
+    send_message(conn, {"map_data": map_data})
+    print(f"[SERVER] Sent map_data to {addr}")
 
     # Step 2: Wait for ACK before broadcasting
     raw_len = recv_exact(conn, 4)

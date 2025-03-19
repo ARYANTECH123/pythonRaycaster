@@ -10,19 +10,12 @@ import threading
 network = ClientNetwork()  # Connects to server at localhost:5555 by default
 
 # === GAME INITIALIZATION ===
+# Wait for map data
+while network.map_data is None:
+    print("[CLIENT] Waiting for map...")
 
-world = [
-    1,1,1,1,1,1,1,1,
-    1,1,0,1,0,0,0,1,
-    1,0,0,0,0,1,0,1,
-    1,1,1,0,0,0,0,1,
-    1,0,0,0,0,0,0,1,
-    1,0,0,0,0,0,0,1,
-    1,0,0,0,0,0,0,1,
-    1,0,0,0,0,0,0,1
-]
-
-map_obj = Map(world, 8, 8, 64)
+map_info = network.map_data
+map_obj = Map(map_info['grid'], map_info['mapX'], map_info['mapY'], map_info['mapS'])
 
 # You can adjust keybindings per client instance
 key_bindings = {'FORWARD': 'z', 'BACKWARD': 's', 'LEFT': 'q', 'RIGHT': 'd'}
