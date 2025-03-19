@@ -43,7 +43,7 @@ class Renderer:
             # Wall hit, draw projection:
             ca = radians(player.pa - ra)
             dis *= cos(ca)  # Fix fisheye
-            line_height = (self.map.mapS * 320) / dis
+            line_height = (self.map.mapS * 320) / dis # [ ] FIXME Potential division by 0
             if line_height > 320:
                 line_height = 320
             line_offset = 160 - line_height / 2
