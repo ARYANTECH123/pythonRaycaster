@@ -1,3 +1,4 @@
-[ ] Change lighting depending on distance and facing (n/s/e/w) 
 [ ] Create a map manager/editor
 [ ] Detect keyboard layout for key bindings
+[ ] Add different kind of walls
+[ ] Use texture mapping

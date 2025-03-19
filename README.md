@@ -41,8 +41,7 @@ Currently I plan on making
 - Map generation (maybe mazelik/terrainlike)
 - Game mechanics (not yet determined)
 - Improve graphics
-  - Directional light source (N/S/W/E)
-  - Lighting depends on distance
+  - Use texture mapping
 
 ## Screenshots
 ![8kSpaceInvader's old version](https://github.com/ARYANTECH123/pythonRaycaster/blob/main/image.png)

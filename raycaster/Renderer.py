@@ -15,6 +15,8 @@ class Renderer:
 
 
     def cast_rays(self, player):
+        
+        max_distance = 1000  # For shading according to distance
 
         # Draws sky
         sky_color = self.map.get_color("sky")
@@ -79,7 +81,7 @@ class Renderer:
                             wall_face = "North"
                         else:
                             wall_face = "South"
-
+                            
                     break
 
 
@@ -94,20 +96,35 @@ class Renderer:
             if line_height > 320:
                 line_height = 320
             line_offset = 160 - line_height / 2
+            base_color = self.map.get_color("wall")
 
-            if wall_face == "North":
-                shaded_color = (200, 200, 200)
-            elif wall_face == "South":
-                shaded_color = (180, 180, 180)
-            elif wall_face == "East":
-                shaded_color = (160, 160, 160)
-            elif wall_face == "West":
-                shaded_color = (140, 140, 140)
-            else:
-                shaded_color = (255, 0, 255)
+            # Control how fast the damping applies:
+            distance_factor = max(0.4, 1 - dis / max_distance)  # Keep at least 40% brightness
 
+            # Shading
+            shade_factors = {
+                "North": 1.0,
+                "South": 0.6,
+                "East": 0.8,
+                "West": 0.9
+            }
+
+            # Wall face factor:
+            face_factor = shade_factors.get(wall_face, 1.0)
+
+            # Final factor:
+            final_factor = face_factor * distance_factor
+
+            # Apply:
+            shaded_color = tuple(
+                max(0, min(255, int(c * final_factor)))
+                for c in base_color
+            )
+
+            # Change color
             glColor3ub(*shaded_color)
 
+            # Draw vertical line according to ray
             glLineWidth(8)
             glBegin(GL_LINES)
             glVertex2i(r * 8 + 530, int(line_offset))
