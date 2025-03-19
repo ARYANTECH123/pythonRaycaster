@@ -2,28 +2,14 @@ import socket
 import threading
 import json
 import struct
+from raycaster import Map
 
 clients = {}  # conn: player_id
 players_state = {}  # player_id: {px, py, pa}
 
 # Server Map Definition
-world = [
-    1,1,1,1,1,1,1,1,
-    1,1,0,1,0,0,0,1,
-    1,0,0,0,0,1,0,1,
-    1,1,1,0,0,0,0,1,
-    1,0,0,0,0,0,0,1,
-    1,0,0,0,0,0,0,1,
-    1,0,0,0,0,0,0,1,
-    1,0,0,0,0,0,0,1
-]
 
-map_data = {
-    "grid": world,
-    "mapX": 8,
-    "mapY": 8,
-    "mapS": 64
-}
+map_data = Map.load_from_file('maps/house_l.json').map_to_dict()
 
 # === Helper functions ===
 
@@ -70,7 +56,14 @@ def handle_client(conn, addr, player_id):
         return
     msg_len = struct.unpack('!I', raw_len)[0]
     data = recv_exact(conn, msg_len)
-    ack_msg = json.loads(data.decode())
+    #[ ] FIXME: make sure to only broadcast to those with ack recieved / close connexion when invalid ack. 
+    # Otherwise you can join from browser, close the page, connexion is never closed and it keeps broadcasting to you.
+    # Check with chatgpt if this might cause issues with normal clients
+    try: 
+        ack_msg = json.loads(data.decode())
+    except: 
+        ack_msg = {}
+        print(f"[SERVER] No ACK from {addr}")
     if 'ack' not in ack_msg:
         print(f"[SERVER] Invalid ACK from {addr}")
         return
