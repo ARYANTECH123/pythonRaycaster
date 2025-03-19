@@ -44,18 +44,44 @@ class Renderer:
             rx, ry = player.px, player.py
             hit_wall = False  # Track if wall is hit
 
-            while dof < 20:  # Max depth (higher allows longer rays)
-                mx = int(rx) // self.map.mapS
-                my = int(ry) // self.map.mapS
-                if mx < 0 or mx >= self.map.mapX or my < 0 or my >= self.map.mapY:
-                    break  # Ray exited map bounds, stop tracing
-                if self.map.grid[my * self.map.mapX + mx] == 1:
-                    dis = hypot(rx - player.px, ry - player.py)
-                    hit_wall = True
-                    break
+            while dof < 20:
+                # Store previous grid cell BEFORE moving
+                prev_mx = int(rx) // self.map.mapS
+                prev_my = int(ry) // self.map.mapS
+
+                # Move ray
                 rx += cos(ray_angle) * 5
                 ry -= sin(ray_angle) * 5
                 dof += 0.1
+
+                # Current grid cell
+                mx = int(rx) // self.map.mapS
+                my = int(ry) // self.map.mapS
+
+                if mx < 0 or mx >= self.map.mapX or my < 0 or my >= self.map.mapY:
+                    break
+
+                if self.map.grid[my * self.map.mapX + mx] == 1:
+                    dis = hypot(rx - player.px, ry - player.py)
+                    hit_wall = True
+
+                    # Compare previous and current grid cells
+                    delta_mx = mx - prev_mx
+                    delta_my = my - prev_my
+
+                    if abs(delta_mx) > abs(delta_my):
+                        if delta_mx > 0:
+                            wall_face = "West"
+                        else:
+                            wall_face = "East"
+                    else:
+                        if delta_my > 0:
+                            wall_face = "North"
+                        else:
+                            wall_face = "South"
+
+                    break
+
 
             if not hit_wall:
                 ra -= (self.FOV / self.num_rays)
@@ -69,7 +95,19 @@ class Renderer:
                 line_height = 320
             line_offset = 160 - line_height / 2
 
-            glColor3ub(*self.map.get_color("wall"))
+            if wall_face == "North":
+                shaded_color = (200, 200, 200)
+            elif wall_face == "South":
+                shaded_color = (180, 180, 180)
+            elif wall_face == "East":
+                shaded_color = (160, 160, 160)
+            elif wall_face == "West":
+                shaded_color = (140, 140, 140)
+            else:
+                shaded_color = (255, 0, 255)
+
+            glColor3ub(*shaded_color)
+
             glLineWidth(8)
             glBegin(GL_LINES)
             glVertex2i(r * 8 + 530, int(line_offset))
