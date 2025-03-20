@@ -15,11 +15,11 @@ while network.map_data is None:
     print("[CLIENT] Waiting for map...")
 
 map_info = network.map_data
-map_obj = Map(map_info['grid'], map_info['mapX'], map_info['mapY'], map_info['mapS'], map_info["colorMap"])
+map_obj = Map(map_info['grid'], map_info['mapX'], map_info['mapY'], map_info['mapS'], map_info["colorMap"], map_info["spawnpoint"])
 
 # You can adjust keybindings per client instance
 key_bindings = {'FORWARD': 'z', 'BACKWARD': 's', 'LEFT': 'q', 'RIGHT': 'd'}
-player = Player(150, 400, 90, key_bindings, map_obj)
+player = Player(map_info["spawnpoint"][0], map_info["spawnpoint"][1], 90, key_bindings, map_obj)
 
 renderer = Renderer(map_obj, [player])  # Local player only for now
 

@@ -2,12 +2,13 @@ from OpenGL.GL import *
 import json
 
 class Map:
-    def __init__(self, grid, mapX, mapY, mapS, colorMap):
+    def __init__(self, grid, mapX, mapY, mapS, colorMap, spawnpoint):
         self.grid = grid
         self.mapX = mapX # Map width
         self.mapY = mapY # Map height
         self.mapS = mapS # Tile size in pixels. Should be 32 to 128. Ideally 64
         self.colorMap = colorMap
+        self.spawnpoint = spawnpoint
     
     def is_wall(self, mx, my):
         if 0 <= mx < self.mapX and 0 <= my < self.mapY:
@@ -36,7 +37,8 @@ class Map:
             "mapX": self.mapX,
             "mapY": self.mapY,
             "mapS": self.mapS,
-            "colorMap": self.colorMap
+            "colorMap": self.colorMap,
+            "spawnpoint": self.spawnpoint
         }
         with open(filename, 'w') as f:
             json.dump(map_data, f)
@@ -47,7 +49,7 @@ class Map:
         with open(filename, 'r') as f:
             map_data = json.load(f)
         print(f"[MAP] Loaded map from {filename}")
-        return cls(map_data["grid"], map_data["mapX"], map_data["mapY"], map_data["mapS"], map_data["colorMap"])
+        return cls(map_data["grid"], map_data["mapX"], map_data["mapY"], map_data["mapS"], map_data["colorMap"], map_data["spawnpoint"])
 
     def map_to_dict(self):
         return {
@@ -55,7 +57,8 @@ class Map:
             "mapX": self.mapX,
             "mapY": self.mapY,
             "mapS": self.mapS,
-            "colorMap": self.colorMap
+            "colorMap": self.colorMap,
+            "spawnpoint": self.spawnpoint
         }
     
     def get_color(self, texture):
@@ -65,6 +68,9 @@ class Map:
             color = (1,0,1) # MAGENTA FOR ERROR
             print(f"[MAP] TEXTURE {texture} DOES NOT EXIST")
         return color
+
+    def get_spawnpoint(self):
+        return self.spawnpoint
 
 
     

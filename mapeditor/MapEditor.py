@@ -18,26 +18,29 @@ class MapEditor:
         self.map_data = None  # Will hold JSON data
         self.grid_data = []   # 2D list representation of grid
         self.tile_size = 32   # Default tile size
+        
+        # Spawnpoint (pixel coordinates) and dragging flag
+        self.spawnpoint = None
+        self.dragging_spawnpoint = False
 
         # Define textures:
-        # Non-paintable textures (changeable via color picker but not used for painting)
+        # Non-paintable textures (only color adjustable, not used for painting)
         self.non_paintable_textures = ["ground", "sky"]
-        # Paintable textures (these will appear as selectable radio buttons)
+        # Paintable textures (appear as selectable radio buttons)
         # Now include "0" as the erase texture and "1" as the first painting texture.
         self.paintable_textures = ["0", "1"]
         self.all_textures = self.non_paintable_textures + self.paintable_textures
 
         # Default colors.
-        # Note: "0" is our erase texture (default white), "ground" and "sky" come from your sample,
-        # and "1" is the default wall texture.
+        # "0" (erase) is white, "ground" and "sky" come from your sample, "1" is wall.
         self.texture_colors = {
-            "0": "#ffffff",     # erase / void (default white)
+            "0": "#ffffff",     # erase/void (white)
             "ground": "#4ac22c", # from [74, 194, 44]
             "sky": "#ebfffe",    # from [235, 255, 254]
-            "1": "#db4900"      # default for wall
+            "1": "#db4900"      # default wall
         }
         
-        # Selected painting texture (only one among the paintable ones is used for painting)
+        # Selected painting texture (only among the paintable ones)
         self.texture_var = tk.StringVar(value="1")
         
         # Layout: left (file management), center (canvas/controls), right (texture editor)
@@ -70,6 +73,7 @@ class MapEditor:
         self.canvas.pack(side=tk.TOP, fill=tk.BOTH, expand=True)
         self.canvas.bind("<Button-1>", self.canvas_click)
         self.canvas.bind("<B1-Motion>", self.canvas_drag)
+        self.canvas.bind("<ButtonRelease-1>", self.canvas_release)
         
         self.control_frame = tk.Frame(self.center_frame)
         self.control_frame.pack(side=tk.BOTTOM, fill=tk.X, pady=5)
@@ -104,12 +108,11 @@ class MapEditor:
         for tex in self.all_textures:
             frame = tk.Frame(self.texture_frame)
             frame.pack(pady=2, padx=5, fill=tk.X)
-            # If texture is paintable (i.e. not ground or sky), add a radio button.
+            # For paintable textures (not ground or sky), add a radio button.
             if tex not in self.non_paintable_textures:
                 rb = tk.Radiobutton(frame, text=tex, variable=self.texture_var, value=tex)
                 rb.pack(side=tk.LEFT)
             else:
-                # For non-paintable textures, simply show the label.
                 tk.Label(frame, text=tex).pack(side=tk.LEFT)
             # Add a color picker button.
             btn = tk.Button(frame, bg=self.texture_colors.get(tex, "gray"), width=6,
@@ -130,13 +133,12 @@ class MapEditor:
             
     def add_texture(self):
         """Adds a new paintable texture with the next available number and default gray color."""
-        # Determine next available number among painting textures.
         digit_keys = [int(t) for t in self.paintable_textures if t.isdigit()]
         next_num = max(digit_keys) + 1 if digit_keys else 1
         next_texture = str(next_num)
         self.paintable_textures.append(next_texture)
         self.all_textures = self.non_paintable_textures + self.paintable_textures
-        self.texture_colors[next_texture] = "#808080"  # default gray (128,128,128)
+        self.texture_colors[next_texture] = "#808080"  # default gray
         self.create_texture_sidebar()
         
     def select_folder(self):
@@ -177,7 +179,7 @@ class MapEditor:
             self.height_slider.set(mapY)
             
             # Update texture colors from the file's colormap.
-            # Remap known keys: "wall" -> "1"; "void"/"erase" -> "0".
+            # Remap keys: "wall" -> "1"; "void"/"erase" -> "0".
             if "colorMap" in data:
                 file_colormap = data["colorMap"]
                 for key, rgb in file_colormap.items():
@@ -193,22 +195,20 @@ class MapEditor:
             for tex in self.non_paintable_textures:
                 if tex not in self.texture_colors:
                     self.texture_colors[tex] = defaults.get(tex, "#000000")
-            # Also ensure defaults for our basic paintable textures.
             for tex in ["0", "1"]:
                 if tex not in self.texture_colors:
                     self.texture_colors[tex] = defaults.get(tex, "#000000")
-            
-            # Determine painting textures: keys that are digits and not in non-paintable.
+                    
+            # Determine painting textures: keys that are digits.
             self.paintable_textures = sorted(
                 [key for key in self.texture_colors.keys() 
                  if key not in self.non_paintable_textures and key.isdigit()],
                 key=lambda x: int(x)
             )
-            # Make sure the erase texture "0" is present.
+            # Make sure "0" and "1" exist.
             if "0" not in self.paintable_textures:
                 self.texture_colors["0"] = self.texture_colors.get("0", "#ffffff")
                 self.paintable_textures.insert(0, "0")
-            # Ensure at least "1" is present.
             if "1" not in self.paintable_textures:
                 self.texture_colors["1"] = self.texture_colors.get("1", "#db4900")
                 self.paintable_textures.append("1")
@@ -218,7 +218,14 @@ class MapEditor:
             # Ensure a valid painting texture is selected.
             if self.texture_var.get() not in self.paintable_textures:
                 self.texture_var.set(self.paintable_textures[0])
-                    
+            
+            # Set the spawnpoint: if not in file, default to center of the map.
+            if "spawnpoint" in data:
+                self.spawnpoint = data["spawnpoint"]
+            else:
+                # Default to center: (mapX/2 * tile_size, mapY/2 * tile_size)
+                self.spawnpoint = [(mapX / 2) * self.tile_size, (mapY / 2) * self.tile_size]
+            
             self.create_texture_sidebar()
             self.draw_grid()
         except Exception as e:
@@ -237,12 +244,54 @@ class MapEditor:
                 y1 = i * self.tile_size
                 x2 = x1 + self.tile_size
                 y2 = y1 + self.tile_size
-                # The grid stores numeric values for painting textures.
                 val = str(self.grid_data[i][j])
                 color = self.texture_colors.get(val, "gray")
                 self.canvas.create_rectangle(x1, y1, x2, y2, fill=color,
                                              outline="black", tags=f"cell_{i}_{j}")
-                                             
+        # Draw the spawnpoint on top.
+        self.draw_spawnpoint()
+        
+    def draw_spawnpoint(self):
+        if self.spawnpoint is None:
+            return
+        # Remove any old spawnpoint drawing.
+        self.canvas.delete("spawnpoint")
+        x, y = self.spawnpoint
+        cross_size = 5
+        self.canvas.create_line(x - cross_size, y, x + cross_size, y, fill="red", width=2, tags="spawnpoint")
+        self.canvas.create_line(x, y - cross_size, x, y + cross_size, fill="red", width=2, tags="spawnpoint")
+        
+    def is_near_spawn(self, event, tol=8):
+        """Return True if event is within tol pixels of the spawnpoint."""
+        if self.spawnpoint is None:
+            return False
+        x, y = self.spawnpoint
+        dx = event.x - x
+        dy = event.y - y
+        return (dx * dx + dy * dy) <= (tol * tol)
+        
+    def update_spawnpoint(self, event):
+        """Update spawnpoint to event coordinates and redraw."""
+        self.spawnpoint = [event.x, event.y]
+        self.draw_grid()
+        
+    def canvas_click(self, event):
+        # If click is near the spawnpoint, start dragging it.
+        if self.is_near_spawn(event):
+            self.dragging_spawnpoint = True
+            self.update_spawnpoint(event)
+        else:
+            self.paint_at(event)
+        
+    def canvas_drag(self, event):
+        if self.dragging_spawnpoint:
+            self.update_spawnpoint(event)
+        else:
+            self.paint_at(event)
+        
+    def canvas_release(self, event):
+        self.dragging_spawnpoint = False
+        
     def get_cell_from_coords(self, event):
         col = event.x // self.tile_size
         row = event.y // self.tile_size
@@ -250,16 +299,9 @@ class MapEditor:
             return None, None
         return row, col
         
-    def canvas_click(self, event):
-        self.paint_at(event)
-        
-    def canvas_drag(self, event):
-        self.paint_at(event)
-        
     def paint_at(self, event):
         row, col = self.get_cell_from_coords(event)
         if row is not None and col is not None and self.texture_var.get():
-            # Use the selected painting texture (a digit string).
             new_val = int(self.texture_var.get())
             if self.grid_data[row][col] != new_val:
                 self.grid_data[row][col] = new_val
@@ -270,7 +312,7 @@ class MapEditor:
                 color = self.texture_colors.get(str(new_val), "gray")
                 self.canvas.create_rectangle(x1, y1, x2, y2, fill=color,
                                              outline="black", tags=f"cell_{row}_{col}")
-                                             
+        
     def on_width_change(self, value):
         if not self.grid_data:
             return
@@ -327,6 +369,9 @@ class MapEditor:
         self.map_data["mapX"] = len(self.grid_data[0])
         self.map_data["mapY"] = len(self.grid_data)
         self.map_data["mapS"] = self.tile_size
+        # Save the spawnpoint.
+        if self.spawnpoint is not None:
+            self.map_data["spawnpoint"] = self.spawnpoint
         
         # Update the colormap for all textures.
         new_colorMap = {}
@@ -358,12 +403,13 @@ class MapEditor:
         if os.path.exists(file_path):
             messagebox.showwarning("File Exists", "File already exists!")
             return
-        # Default map: 16x16 grid, tile size 32, with a default colormap.
+        # Default map: 16x16 grid, tile size 32, default colormap, and spawnpoint at center.
         default_map = {
             "grid": [0] * (16 * 16),
             "mapX": 16,
             "mapY": 16,
             "mapS": 32,
+            "spawnpoint": [(16 / 2) * 32, (16 / 2) * 32],
             "colorMap": {
                 "ground": [74, 194, 44],
                 "sky": [235, 255, 254],

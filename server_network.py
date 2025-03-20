@@ -136,6 +136,7 @@ def start_server(host='127.0.0.1', port=5555):
     print(f"[SERVER] Listening on {host}:{port}")
 
     next_player_id = 1
+    
 
     while True:
         conn, addr = server.accept()
@@ -143,13 +144,11 @@ def start_server(host='127.0.0.1', port=5555):
         next_player_id += 1
 
         # Initialize player's state
-        players_state[player_id] = {"px": 150, "py": 400, "pa": 90} # [ ] TODO: make a spawnpoint on map as a cell
+        players_state[player_id] = {"px": map_data["spawnpoint"][0], "py": map_data["spawnpoint"][1], "pa": 90}
 
         # Start handler
         thread = threading.Thread(target=handle_client, args=(conn, addr, player_id, map_data), daemon=True)
         thread.start()
 
 if __name__ == "__main__":
-    # Server Map Definition
-    
     start_server()
