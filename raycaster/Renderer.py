@@ -96,7 +96,7 @@ class Renderer:
             if line_height > 320:
                 line_height = 320
             line_offset = 160 - line_height / 2
-            base_color = self.map.get_color("wall")
+            base_color = self.map.get_color("1")
 
             # Control how fast the damping applies:
             distance_factor = max(0.4, 1 - dis / max_distance)  # Keep at least 40% brightness
