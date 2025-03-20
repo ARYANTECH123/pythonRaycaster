@@ -9,9 +9,10 @@ class Renderer:
         self.num_rays = 60
 
     def draw_scene(self, player):
+
+        self.cast_rays(player)  # Raycasting specific to this player
         self.map.draw()
         player.draw()
-        self.cast_rays(player)  # Raycasting specific to this player
 
 
     def cast_rays(self, player):

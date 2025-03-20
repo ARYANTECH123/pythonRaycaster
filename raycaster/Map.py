@@ -9,6 +9,7 @@ class Map:
         self.mapS = mapS # Tile size in pixels. Should be 32 to 128. Ideally 64
         self.colorMap = colorMap
         self.spawnpoint = spawnpoint
+        self.minimap_size = 16
     
     def is_wall(self, mx, my):
         if 0 <= mx < self.mapX and 0 <= my < self.mapY:
@@ -23,12 +24,14 @@ class Map:
                     glColor3ub(*self.get_color(str(cell_value)))
                 else:
                     glColor3ub(*self.get_color(str("ground")))
-                xo, yo = x * self.mapS, y * self.mapS
+
+                minimap_size = self.get_minimap_size()
+                xo, yo = x * minimap_size, y * minimap_size
                 glBegin(GL_QUADS)
-                glVertex2i(xo,             yo            )
-                glVertex2i(xo,             yo + self.mapS)
-                glVertex2i(xo + self.mapS, yo + self.mapS)
-                glVertex2i(xo + self.mapS, yo            )
+                glVertex2i(xo,             yo                  )
+                glVertex2i(xo,             yo + minimap_size   )
+                glVertex2i(xo + minimap_size, yo + minimap_size)
+                glVertex2i(xo + minimap_size, yo               )
                 glEnd()
 
     # TODO look into if i should use static method here and on other classes
@@ -62,6 +65,7 @@ class Map:
             "spawnpoint": self.spawnpoint
         }
     
+    # GETTERS
     def get_color(self, texture):
         try: 
             color = self.colorMap[texture]
@@ -73,7 +77,26 @@ class Map:
     def get_spawnpoint(self):
         return self.spawnpoint
 
+    def get_grid(self):
+        return self.grid
 
+    def get_mapX(self):
+        return self.mapX
+    
+    def get_mapY(self):
+        return self.mapY
+
+    def get_mapS(self):
+        return self.mapS
+    
+    def get_colorMap(self):
+        return self.colorMap
+    
+    def get_spawnpoint(self):
+        return self.spawnpoint
+    
+    def get_minimap_size(self):
+        return self.minimap_size
     
 
 

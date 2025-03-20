@@ -48,13 +48,21 @@ class Player:
 
 
     def draw(self):
+
         glColor3f(1, 1, 0)
+        
+        map_x = self.px / self.map.get_mapS() * self.map.get_minimap_size()
+        map_y = self.py / self.map.get_mapS() * self.map.get_minimap_size()
+
+        # Dot
         glPointSize(8)
         glLineWidth(3)
         glBegin(GL_POINTS)
-        glVertex2i(int(self.px), int(self.py))
+        glVertex2i(int(map_x), int(map_y))
         glEnd()
+        
+        # Forward segment
         glBegin(GL_LINES)
-        glVertex2i(int(self.px), int(self.py))
-        glVertex2i(int(self.px + 20 * self.pdx), int(self.py + 20 * self.pdy))
+        glVertex2i(int(map_x), int(map_y))
+        glVertex2i(int(map_x + 20 * self.pdx), int(map_y + 20 * self.pdy))
         glEnd()
