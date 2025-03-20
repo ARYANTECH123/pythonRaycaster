@@ -46,6 +46,8 @@ class Renderer:
             rx, ry = player.px, player.py
             hit_wall = False  # Track if wall is hit
 
+            # Get collision data
+
             while dof < 20:
                 # Store previous grid cell BEFORE moving
                 prev_mx = int(rx) // self.map.mapS
@@ -60,10 +62,15 @@ class Renderer:
                 mx = int(rx) // self.map.mapS
                 my = int(ry) // self.map.mapS
 
+                # If outside of map, stop
                 if mx < 0 or mx >= self.map.mapX or my < 0 or my >= self.map.mapY:
                     break
 
-                if self.map.grid[my * self.map.mapX + mx] == 1:
+                # Get wall hit
+                hit_cell_value = self.map.grid[my * self.map.mapX + mx]
+                
+                # If hit 
+                if hit_cell_value != 0:
                     dis = hypot(rx - player.px, ry - player.py)
                     hit_wall = True
 
@@ -96,7 +103,7 @@ class Renderer:
             if line_height > 320:
                 line_height = 320
             line_offset = 160 - line_height / 2
-            base_color = self.map.get_color("1")
+            base_color = self.map.get_color(str(hit_cell_value)) # Get color of wall
 
             # Control how fast the damping applies:
             distance_factor = max(0.4, 1 - dis / max_distance)  # Keep at least 40% brightness

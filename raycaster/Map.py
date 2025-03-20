@@ -12,22 +12,23 @@ class Map:
     
     def is_wall(self, mx, my):
         if 0 <= mx < self.mapX and 0 <= my < self.mapY:
-            return self.grid[my * self.mapX + mx] == 1
+            return self.grid[my * self.mapX + mx] != 0
         return True  # Out of bounds = wall
 
     def draw(self):
         for y in range(self.mapY):
             for x in range(self.mapX):
-                if self.grid[y * self.mapX + x] == 1:
-                    glColor3f(1, 1, 1)
+                cell_value = self.grid[y * self.mapX + x]
+                if cell_value != 0 : # if not void
+                    glColor3ub(*self.get_color(str(cell_value)))
                 else:
-                    glColor3f(0, 0, 0)
+                    glColor3ub(*self.get_color(str("ground")))
                 xo, yo = x * self.mapS, y * self.mapS
                 glBegin(GL_QUADS)
-                glVertex2i(xo + 1, yo + 1)
-                glVertex2i(xo + 1, yo + self.mapS - 1)
-                glVertex2i(xo + self.mapS - 1, yo + self.mapS - 1)
-                glVertex2i(xo + self.mapS - 1, yo + 1)
+                glVertex2i(xo,             yo            )
+                glVertex2i(xo,             yo + self.mapS)
+                glVertex2i(xo + self.mapS, yo + self.mapS)
+                glVertex2i(xo + self.mapS, yo            )
                 glEnd()
 
     # TODO look into if i should use static method here and on other classes
