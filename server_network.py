@@ -26,7 +26,7 @@ def recv_exact(sock, n):
     return data
 
 def broadcast():
-    # print(f"[SERVER] Broadcasting: {players_state}") # DEBUG
+    print(f"[SERVER] Broadcasting: {players_state}") # DEBUG
     for conn in list(clients.keys()):
         try:
             send_message(conn, players_state)

@@ -9,30 +9,11 @@ class Map:
         self.mapS = mapS # Tile size in pixels. Should be 32 to 128. Ideally 64
         self.colorMap = colorMap
         self.spawnpoint = spawnpoint
-        self.minimap_size = 4
     
     def is_wall(self, mx, my):
         if 0 <= mx < self.mapX and 0 <= my < self.mapY:
             return self.grid[my * self.mapX + mx] != 0
         return True  # Out of bounds = wall
-
-    def draw(self):
-        for y in range(self.mapY):
-            for x in range(self.mapX):
-                cell_value = self.grid[y * self.mapX + x]
-                if cell_value != 0 : # if not void
-                    glColor3ub(*self.get_color(str(cell_value)))
-                else:
-                    glColor3ub(*self.get_color(str("ground")))
-
-                minimap_size = self.get_minimap_size()
-                xo, yo = x * minimap_size, y * minimap_size
-                glBegin(GL_QUADS)
-                glVertex2i(xo,             yo                  )
-                glVertex2i(xo,             yo + minimap_size   )
-                glVertex2i(xo + minimap_size, yo + minimap_size)
-                glVertex2i(xo + minimap_size, yo               )
-                glEnd()
 
     # TODO look into if i should use static method here and on other classes
     def save_to_file(self, filename):
@@ -95,6 +76,4 @@ class Map:
     def get_spawnpoint(self):
         return self.spawnpoint
     
-    def get_minimap_size(self):
-        return self.minimap_size
     

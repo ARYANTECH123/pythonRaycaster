@@ -46,23 +46,29 @@ class Player:
             self.px = new_x
             self.py = new_y
 
+    # Getters
+    def get_px(self):
+        return self.px
 
-    def draw(self):
+    def get_py(self):
+        return self.py
 
-        glColor3f(1, 1, 0)
-        
-        map_x = self.px / self.map.get_mapS() * self.map.get_minimap_size()
-        map_y = self.py / self.map.get_mapS() * self.map.get_minimap_size()
+    def get_pa(self):
+        return self.pa
 
-        # Dot
-        glPointSize(8)
-        glLineWidth(3)
-        glBegin(GL_POINTS)
-        glVertex2i(int(map_x), int(map_y))
-        glEnd()
-        
-        # Forward segment
-        glBegin(GL_LINES)
-        glVertex2i(int(map_x), int(map_y))
-        glVertex2i(int(map_x + 20 * self.pdx), int(map_y + 20 * self.pdy))
-        glEnd()
+    def get_pdx(self):
+        return self.pdx
+
+    def get_pdy(self):
+        return self.pdy
+
+    def get_keys_pressed(self):
+        return self.keys_pressed
+
+    def get_key_bindings(self):
+        return self.key_bindings
+
+    def get_map(self):
+        return self.map
+
+    

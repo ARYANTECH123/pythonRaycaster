@@ -1,15 +1,17 @@
 from math import sin, cos, radians, hypot
+from typing import Union, Tuple
+from .Player import Player
 from OpenGL.GL import *
 from OpenGL.GLU import *
 from OpenGL.GLUT import *
 
 class Renderer:
-    def __init__(self, map_obj, fov = 80, num_rays = 120, max_distance = 500):
+    def __init__(self, map_obj, fov:int = 80, num_rays = 120, max_distance = 500, minimap_size = 4):
         self.map = map_obj
         self.FOV = fov
         self.num_rays = num_rays # resolution
-        self.max_distance = max_distance
-
+        self.max_distance = max_distance # shading
+        self.minimap_size = minimap_size
 
     def reshape(self, width, height):
         """Handles window resizing correctly."""
@@ -28,8 +30,8 @@ class Renderer:
 
     def draw_scene(self, player):
         self.cast_rays(player)
-        self.map.draw()
-        player.draw()
+        self.draw_minimap()
+        self.draw_minimap_player(player)
 
     def cast_rays(self, player):
 
@@ -141,7 +143,61 @@ class Renderer:
             glEnd()
 
             ra -= (self.FOV / self.num_rays)
+   
+    def draw_minimap(self):
+        minimap_size = self.get_minimap_size()
+        for y in range(self.map.get_mapY()):
+            for x in range(self.map.get_mapX()):
+                cell_value = self.map.get_grid()[y * self.map.get_mapX() + x]
 
+                if cell_value != 0 : # if not void
+                    glColor3ub(*self.map.get_color(str(cell_value)))
+                else:
+                    glColor3ub(*self.map.get_color(str("ground")))
+
+                xo, yo = x * minimap_size, y * minimap_size
+                glBegin(GL_QUADS)
+                glVertex2i(xo,                yo               )
+                glVertex2i(xo,                yo + minimap_size)
+                glVertex2i(xo + minimap_size, yo + minimap_size)
+                glVertex2i(xo + minimap_size, yo               )
+                glEnd()
+
+    def draw_minimap_player(self, player_or_coords: Union[Player, Tuple[float, float, float]]) -> None:
+
+        mapS = self.get_map().get_mapS()
+        minimap_size = self.get_minimap_size()
+        segment_length = 0.25
+
+        if isinstance(player_or_coords, Player):
+            glColor3f(0, 1, 1) # CYAN COLOR FOR PLAYER
+            px, py, pdx, pdy = player_or_coords.get_px(), player_or_coords.get_py(), player_or_coords.get_pdx(), player_or_coords.get_pdy()
+        else:
+            glColor3f(1, 0, 0) # RED COLOR FOR OTHER PLAYERS
+            px, py, pa = player_or_coords  # Expecting tuple (px, py, pa)
+            # Calculate pdx, pdy based on pa:
+            pdx = cos(radians(pa))
+            pdy = -sin(radians(pa))
+    
+
+
+        
+        map_x = px / mapS * minimap_size
+        map_y = py / mapS * minimap_size
+
+        # Dot
+        glPointSize(8)
+        glLineWidth(3)
+        glBegin(GL_POINTS)
+        glVertex2i(int(map_x), int(map_y))
+        glEnd()
+        
+        # Forward segment
+        glBegin(GL_LINES)
+        glVertex2i(int(map_x), int(map_y))
+        glVertex2i(int(map_x + 10 * pdx), int(map_y + 10 * pdy))
+        glEnd()
+    
     # Getters
 
     def get_map(self):
@@ -156,6 +212,8 @@ class Renderer:
     def get_max_distance(self):
         return self.max_distance
 
+    def get_minimap_size(self):
+        return self.minimap_size
 
     
 
