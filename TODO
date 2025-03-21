@@ -1,4 +1,2 @@
-[ ] Create a map manager/editor
-[ ] Detect keyboard layout for key bindings
-[ ] Add different kind of walls
 [ ] Use texture mapping
+[ ] FIXME: multiplayer minimap still follows old behavior

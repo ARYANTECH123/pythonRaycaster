@@ -5,6 +5,27 @@ from OpenGL.GLUT import *
 from multiplayer import ClientNetwork
 import time
 import threading
+from dotenv import load_dotenv
+import os
+
+load_dotenv()
+
+def get_env_int(key, default):
+    try:
+        return int(os.getenv(key, default))
+    except ValueError:
+        return default
+
+def get_env_str(key, default):
+    return os.getenv(key, default) # is str by default
+
+FOV = get_env_int("RAYCASTER_FOV", 80)
+NUM_RAYS = get_env_int("RAYCASTER_NUM_RAYS",120)
+MAX_DISTANCE = get_env_int("RAYCASTER_MAX_DISTANCE",500)
+KEY_FORWARD = get_env_str("KEY_FORWARD",'W')
+KEY_LEFT = get_env_str("KEY_LEFT",'A')
+KEY_BACKWARD = get_env_str("KEY_BACKWARD",'S')
+KEY_RIGHT = get_env_str("KEY_RIGHT",'D')
 
 # === NETWORK INITIALIZATION ===
 network = ClientNetwork()  # Connects to server at localhost:5555 by default
@@ -18,12 +39,13 @@ map_info = network.map_data
 map_obj = Map(map_info['grid'], map_info['mapX'], map_info['mapY'], map_info['mapS'], map_info["colorMap"], map_info["spawnpoint"])
 
 # You can adjust keybindings per client instance
-key_bindings = {'FORWARD': 'z', 'BACKWARD': 's', 'LEFT': 'q', 'RIGHT': 'd'}
+key_bindings = {'FORWARD': KEY_FORWARD, 'BACKWARD': KEY_BACKWARD, 'LEFT': KEY_LEFT, 'RIGHT': KEY_RIGHT}
 player = Player(map_info["spawnpoint"][0], map_info["spawnpoint"][1], 90, key_bindings, map_obj)
 
-renderer = Renderer(map_obj, [player])  # Local player only for now
+renderer = Renderer(map_obj=map_obj, fov=FOV, num_rays=NUM_RAYS, max_distance=MAX_DISTANCE)  # Local player only for now
 
 last_time = time.time()
+
 
 # === GLUT INITIALIZATION ===
 glutInit()
@@ -37,7 +59,7 @@ glutReshapeFunc(renderer.reshape)
 # === INPUT HANDLERS ===
 def keyboard_down(key, x, y):
     try:
-        key_char = key.decode()
+        key_char = key.decode().lower()
         if key_char in player.key_bindings.values():
             player.keys_pressed.add(key_char)
     except UnicodeDecodeError:
@@ -45,11 +67,12 @@ def keyboard_down(key, x, y):
 
 def keyboard_up(key, x, y):
     try:
-        key_char = key.decode()
+        key_char = key.decode().lower()
         if key_char in player.keys_pressed:
             player.keys_pressed.remove(key_char)
     except UnicodeDecodeError:
         pass
+
 
 # === DISPLAY FUNCTION ===
 def display():
@@ -102,4 +125,5 @@ def on_close():
 import atexit
 atexit.register(on_close)
 
+# === MAIN LOOP ===
 glutMainLoop()

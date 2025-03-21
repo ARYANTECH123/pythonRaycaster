@@ -4,11 +4,11 @@ from OpenGL.GLU import *
 from OpenGL.GLUT import *
 
 class Renderer:
-    def __init__(self, map_obj, players):
+    def __init__(self, map_obj, fov = 80, num_rays = 120, max_distance = 500):
         self.map = map_obj
-        self.players = players
-        self.FOV = 60
-        self.num_rays = 60
+        self.FOV = fov
+        self.num_rays = num_rays # resolution
+        self.max_distance = max_distance
 
 
     def reshape(self, width, height):
@@ -32,7 +32,6 @@ class Renderer:
         player.draw()
 
     def cast_rays(self, player):
-        max_distance = 1000
 
         screen_width, screen_height = self.get_window_size()
         slice_width = screen_width / self.num_rays
@@ -66,20 +65,20 @@ class Renderer:
             hit_wall = False
 
             while dof < 20:
-                prev_mx = int(rx) // self.map.mapS
-                prev_my = int(ry) // self.map.mapS
+                prev_mx = int(rx) // self.map.get_mapS()
+                prev_my = int(ry) // self.map.get_mapS()
 
                 rx += cos(ray_angle) * 5
                 ry -= sin(ray_angle) * 5
                 dof += 0.1
 
-                mx = int(rx) // self.map.mapS
-                my = int(ry) // self.map.mapS
+                mx = int(rx) // self.map.get_mapS()
+                my = int(ry) // self.map.get_mapS()
 
-                if mx < 0 or mx >= self.map.mapX or my < 0 or my >= self.map.mapY:
+                if mx < 0 or mx >= self.map.get_mapX() or my < 0 or my >= self.map.get_mapY():
                     break
 
-                hit_cell_value = self.map.grid[my * self.map.mapX + mx]
+                hit_cell_value = self.map.get_grid()[my * self.map.get_mapX() + mx]
 
                 if hit_cell_value != 0:
                     dis = hypot(rx - player.px, ry - player.py)
@@ -110,7 +109,7 @@ class Renderer:
 
             # Wall color and shading
             base_color = self.map.get_color(str(hit_cell_value))
-            distance_factor = max(0.7, 1 - (dis / max_distance) ** 0.5)
+            distance_factor = max(0.7, 1 - (dis / self.get_max_distance()) ** 0.5)
 
             shade_factors = {
                 "North": 1.0,
@@ -142,3 +141,21 @@ class Renderer:
             glEnd()
 
             ra -= (self.FOV / self.num_rays)
+
+    # Getters
+
+    def get_map(self):
+        return self.map
+
+    def get_FOV(self):
+        return self.FOV
+
+    def get_num_rays(self):
+        return self.num_rays
+
+    def get_max_distance(self):
+        return self.max_distance
+
+
+    
+
