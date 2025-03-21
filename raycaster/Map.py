@@ -9,7 +9,7 @@ class Map:
         self.mapS = mapS # Tile size in pixels. Should be 32 to 128. Ideally 64
         self.colorMap = colorMap
         self.spawnpoint = spawnpoint
-        self.minimap_size = 16
+        self.minimap_size = 4
     
     def is_wall(self, mx, my):
         if 0 <= mx < self.mapX and 0 <= my < self.mapY:

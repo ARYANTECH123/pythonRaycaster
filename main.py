@@ -25,6 +25,15 @@ renderer = Renderer(map_obj, [player])  # Local player only for now
 
 last_time = time.time()
 
+# === GLUT INITIALIZATION ===
+glutInit()
+glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB)
+glutInitWindowSize(1024, 512)
+glutCreateWindow(b"Networked Raycaster Client")
+
+glutReshapeFunc(renderer.reshape) 
+
+
 # === INPUT HANDLERS ===
 def keyboard_down(key, x, y):
     try:
@@ -75,17 +84,14 @@ def display():
     # print(f"[CLIENT] Rendering players_state: {network.players_state}") # DEBUG
 
 
-# === GLUT INITIALIZATION ===
-glutInit()
-glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB)
-glutInitWindowSize(1024, 512)
-glutCreateWindow(b"Networked Raycaster Client")
+# === GLUT INITIALIZATION PART 2 ===
 
 glClearColor(0.3, 0.3, 0.3, 0)
 gluOrtho2D(0, 1024, 512, 0)
 
 glutKeyboardFunc(keyboard_down)
 glutKeyboardUpFunc(keyboard_up)
+
 glutDisplayFunc(display)
 glutIdleFunc(display)
 
