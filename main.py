@@ -1,3 +1,8 @@
+###############################################################################
+#                                   IMPORTS                                   #
+###############################################################################
+from alive_progress import alive_bar
+
 from raycaster import Map, Player, Renderer
 from OpenGL.GL import *
 from OpenGL.GLU import *
@@ -7,6 +12,11 @@ import time
 import threading
 from dotenv import load_dotenv
 import os
+
+
+###############################################################################
+#                                  CONSTANTS                                  #
+###############################################################################
 
 load_dotenv()
 
@@ -27,6 +37,12 @@ KEY_LEFT = get_env_str("KEY_LEFT",'A')
 KEY_BACKWARD = get_env_str("KEY_BACKWARD",'S')
 KEY_RIGHT = get_env_str("KEY_RIGHT",'D')
 MAP_MINIMAP_SIZE = get_env_int("MAP_MINIMAP_SIZE",4)
+MAP_MINIMAP_OPACITY = get_env_int("MAP_MINIMAP_OPACITY",128)
+
+
+###############################################################################
+#                                INITIALIZATION                               #
+###############################################################################
 
 # === NETWORK INITIALIZATION ===
 network = ClientNetwork()  # Connects to server at localhost:5555 by default
@@ -43,7 +59,7 @@ map_obj = Map(map_info['grid'], map_info['mapX'], map_info['mapY'], map_info['ma
 key_bindings = {'FORWARD': KEY_FORWARD, 'BACKWARD': KEY_BACKWARD, 'LEFT': KEY_LEFT, 'RIGHT': KEY_RIGHT}
 player = Player(map_info["spawnpoint"][0], map_info["spawnpoint"][1], 90, key_bindings, map_obj)
 
-renderer = Renderer(map_obj=map_obj, fov=FOV, num_rays=NUM_RAYS, max_distance=MAX_DISTANCE, minimap_size=MAP_MINIMAP_SIZE)  # Local player only for now
+renderer = Renderer(map_obj=map_obj, fov=FOV, num_rays=NUM_RAYS, max_distance=MAX_DISTANCE, minimap_size=MAP_MINIMAP_SIZE, minimap_opacity=MAP_MINIMAP_OPACITY)  # Local player only for now
 
 last_time = time.time()
 
@@ -53,6 +69,9 @@ glutInit()
 glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB)
 glutInitWindowSize(1024, 512)
 glutCreateWindow(b"Networked Raycaster Client")
+
+glEnable(GL_BLEND)
+glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 
 glutReshapeFunc(renderer.reshape) 
 

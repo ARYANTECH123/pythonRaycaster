@@ -6,12 +6,13 @@ from OpenGL.GLU import *
 from OpenGL.GLUT import *
 
 class Renderer:
-    def __init__(self, map_obj, fov:int = 80, num_rays = 120, max_distance = 500, minimap_size = 4):
+    def __init__(self, map_obj, fov:int = 80, num_rays:int = 120, max_distance:int = 500, minimap_size:int = 4, minimap_opacity:int = 128):
         self.map = map_obj
         self.FOV = fov
         self.num_rays = num_rays # resolution
         self.max_distance = max_distance # shading
         self.minimap_size = minimap_size
+        self.minimap_opacity = minimap_opacity
 
     def reshape(self, width, height):
         """Handles window resizing correctly."""
@@ -28,12 +29,12 @@ class Renderer:
         height = glutGet(GLUT_WINDOW_HEIGHT)
         return width, height
 
-    def draw_scene(self, player):
+    def draw_scene(self, player:Player):
         self.cast_rays(player)
         self.draw_minimap()
         self.draw_minimap_player(player)
 
-    def cast_rays(self, player):
+    def cast_rays(self, player:Player):
 
         screen_width, screen_height = self.get_window_size()
         slice_width = screen_width / self.num_rays
@@ -146,14 +147,14 @@ class Renderer:
    
     def draw_minimap(self):
         minimap_size = self.get_minimap_size()
+        minimap_opacity = self.get_minimap_opacity()
         for y in range(self.map.get_mapY()):
             for x in range(self.map.get_mapX()):
                 cell_value = self.map.get_grid()[y * self.map.get_mapX() + x]
-
                 if cell_value != 0 : # if not void
-                    glColor3ub(*self.map.get_color(str(cell_value)))
+                    glColor4ub(*self.map.get_color(str(cell_value)),minimap_opacity)
                 else:
-                    glColor3ub(*self.map.get_color(str("ground")))
+                    glColor4ub(*self.map.get_color(str("ground")),minimap_opacity)
 
                 xo, yo = x * minimap_size, y * minimap_size
                 glBegin(GL_QUADS)
@@ -167,13 +168,14 @@ class Renderer:
 
         mapS = self.get_map().get_mapS()
         minimap_size = self.get_minimap_size()
-        segment_length = 0.25
+        minimap_opacity = self.get_minimap_opacity()
+        segment_length = 10
 
         if isinstance(player_or_coords, Player):
-            glColor3f(0, 1, 1) # CYAN COLOR FOR PLAYER
+            glColor4ub(0,255,255,minimap_opacity) # CYAN COLOR FOR PLAYER
             px, py, pdx, pdy = player_or_coords.get_px(), player_or_coords.get_py(), player_or_coords.get_pdx(), player_or_coords.get_pdy()
         else:
-            glColor3f(1, 0, 0) # RED COLOR FOR OTHER PLAYERS
+            glColor4ub(255, 0, 0, minimap_opacity) # RED COLOR FOR OTHER PLAYERS
             px, py, pa = player_or_coords  # Expecting tuple (px, py, pa)
             # Calculate pdx, pdy based on pa:
             pdx = cos(radians(pa))
@@ -195,7 +197,7 @@ class Renderer:
         # Forward segment
         glBegin(GL_LINES)
         glVertex2i(int(map_x), int(map_y))
-        glVertex2i(int(map_x + 10 * pdx), int(map_y + 10 * pdy))
+        glVertex2i(int(map_x + segment_length * pdx), int(map_y + segment_length * pdy))
         glEnd()
     
     # Getters
@@ -215,5 +217,5 @@ class Renderer:
     def get_minimap_size(self):
         return self.minimap_size
 
-    
-
+    def get_minimap_opacity(self):
+        return self.minimap_opacity
