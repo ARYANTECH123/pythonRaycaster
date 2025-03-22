@@ -2,6 +2,9 @@ import socket
 import threading
 import json
 import struct
+from logger import get_logger
+
+log = get_logger(__name__)
 
 class ClientNetwork:
     def __init__(self, host='127.0.0.1', port=5555):
@@ -45,23 +48,23 @@ class ClientNetwork:
                 # Handle message
                 if 'init_id' in message:
                     self.my_id = message['init_id']
-                    print(f"[CLIENT] Assigned Player ID: {self.my_id}")
+                    log.info(f"Assigned Player ID: {self.my_id}")
 
                     # Send ACK
                     ack = json.dumps({"ack": True}).encode()
                     length = struct.pack('!I', len(ack))
                     self.server.sendall(length + ack)
-                    print("[CLIENT] Sent ACK to server")
+                    log.info("Sent ACK to server")
 
                 elif 'map_data' in message:
                     self.map_data = message['map_data']
-                    print(f"[CLIENT] Received map data: {self.map_data}")
+                    log.info(f"Received map data: {self.map_data}")
 
                 else:
                     self.players_state = message
-                    # print(f"[CLIENT] Updated players_state: {self.players_state}") # DEBUG
+                    log.debug(f"Updated players_state: {self.players_state}")
         except Exception as e:
-            print(f"[CLIENT] Listen error: {e}")
+            log.critical(f"Listen error: {e}")
             self.running = False
 
     def send_player_update(self, px, py, pa):
@@ -71,7 +74,7 @@ class ClientNetwork:
             length = struct.pack('!I', len(message_bytes))
             self.server.sendall(length + message_bytes)
         except Exception as e:
-            print(f"[CLIENT] Send error: {e}")
+            log.error(f"Send error: {e}")
 
     def close(self):
         self.running = False

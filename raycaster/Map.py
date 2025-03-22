@@ -1,5 +1,8 @@
 from OpenGL.GL import *
 import json
+from logger import get_logger
+
+log = get_logger(__name__)
 
 class Map:
     def __init__(self, grid, mapX, mapY, mapS, colorMap, spawnpoint):
@@ -27,13 +30,13 @@ class Map:
         }
         with open(filename, 'w') as f:
             json.dump(map_data, f)
-        print(f"[MAP] Saved map to {filename}")
+        load.info(f"Saved map to {filename}")
 
     @classmethod
     def load_from_file(cls, filename):
         with open(filename, 'r') as f:
             map_data = json.load(f)
-        print(f"[MAP] Loaded map from {filename}")
+        log.info(f"Loaded map from {filename}")
         return cls(map_data["grid"], map_data["mapX"], map_data["mapY"], map_data["mapS"], map_data["colorMap"], map_data["spawnpoint"])
 
     def map_to_dict(self):
@@ -51,8 +54,8 @@ class Map:
         try: 
             color = self.colorMap[texture]
         except:
-            color = (1,0,1) # MAGENTA FOR ERROR
-            print(f"[MAP] TEXTURE {texture} DOES NOT EXIST")
+            color = (255,0,255) # MAGENTA FOR ERROR
+            log.error(f"TEXTURE {texture} DOES NOT EXIST")
         return color
 
     def get_spawnpoint(self):

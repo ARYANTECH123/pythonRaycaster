@@ -2,7 +2,7 @@
 #                                   IMPORTS                                   #
 ###############################################################################
 from alive_progress import alive_bar
-
+from logger import get_logger
 from raycaster import Map, Player, Renderer
 from OpenGL.GL import *
 from OpenGL.GLU import *
@@ -18,7 +18,13 @@ import os
 #                                  CONSTANTS                                  #
 ###############################################################################
 
+log = get_logger(__name__)
+
+log.info("imports successful")
+
 load_dotenv()
+
+log.info("environment loaded")
 
 def get_env_int(key, default):
     try:
@@ -50,7 +56,7 @@ network = ClientNetwork()  # Connects to server at localhost:5555 by default
 # === GAME INITIALIZATION ===
 # Wait for map data
 while network.map_data is None:
-    print("[CLIENT] Waiting for map...")
+    log.info("Waiting for map...")
 
 map_info = network.map_data
 map_obj = Map(map_info['grid'], map_info['mapX'], map_info['mapY'], map_info['mapS'], map_info["colorMap"], map_info["spawnpoint"])
@@ -124,7 +130,7 @@ def display():
 
     glutSwapBuffers()
 
-    # print(f"[CLIENT] Rendering players_state: {network.players_state}") # DEBUG
+    log.debug(f"Rendering players_state: {network.players_state}")
 
 
 # === GLUT INITIALIZATION PART 2 ===
