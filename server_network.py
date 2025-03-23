@@ -89,7 +89,9 @@ def handle_client(conn, addr, player_id, map_data):
             broadcast()
 
     except ConnectionAbortedError:
-        log.warning(f"Connection aborted: {addr}")
+        log.info(f"Connection aborted: {addr}")
+    except ConnectionResetError:
+        log.info(f"Connexion reset by client {addr}")
     except Exception as e:
         log.warning(f"Client error: {e}")
     finally:
