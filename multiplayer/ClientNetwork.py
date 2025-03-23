@@ -32,49 +32,64 @@ class ClientNetwork:
     def listen(self):
         try:
             while self.running:
-                # Step 1: Read length
                 raw_len = self.recv_exact(self.server, 4)
                 if not raw_len:
-                    break
-                msg_len = struct.unpack('!I', raw_len)[0]
+                    log.warning("Server disconnected (length header missing). Closing client.")
+                    break  # Stop loop
 
-                # Step 2: Read full message
+                msg_len = struct.unpack('!I', raw_len)[0]
                 data = self.recv_exact(self.server, msg_len)
                 if not data:
+                    log.warning("Server disconnected (message body missing). Closing client.")
                     break
 
                 message = json.loads(data.decode())
 
-                # Handle message
+                # Handle messages:
                 if 'init_id' in message:
                     self.my_id = message['init_id']
                     log.info(f"Assigned Player ID: {self.my_id}")
 
                     # Send ACK
-                    ack = json.dumps({"ack": True}).encode()
-                    length = struct.pack('!I', len(ack))
-                    self.server.sendall(length + ack)
-                    log.info("Sent ACK to server")
+                    try:
+                        ack = json.dumps({"ack": True}).encode()
+                        length = struct.pack('!I', len(ack))
+                        self.server.sendall(length + ack)
+                        log.info("Sent ACK to server")
+                    except Exception as e:
+                        log.error(f"Error sending ACK: {e}")
+                        break  # Connection issue, break out
 
                 elif 'map_data' in message:
                     self.map_data = message['map_data']
-                    log.info(f"Received map data: {self.map_data}")
+                    log.info(f"Received map data")
 
                 else:
                     self.players_state = message
                     log.debug(f"Updated players_state: {self.players_state}")
+
         except Exception as e:
             log.critical(f"Listen error: {e}")
+        finally:
+            log.warning("Shutting down client listener.")
             self.running = False
+            try:
+                self.server.close()
+            except:
+                pass
 
     def send_player_update(self, px, py, pa):
+        if not self.running:
+            return  # Don't attempt to send if disconnected
         try:
             message = {"px": px, "py": py, "pa": pa}
             message_bytes = json.dumps(message).encode()
             length = struct.pack('!I', len(message_bytes))
             self.server.sendall(length + message_bytes)
         except Exception as e:
-            log.error(f"Send error: {e}")
+            log.critical(f"Send failed (server down?): {e}")
+            self.running = False
+
 
     def close(self):
         self.running = False

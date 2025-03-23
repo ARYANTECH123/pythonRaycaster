@@ -55,8 +55,10 @@ network = ClientNetwork()  # Connects to server at localhost:5555 by default
 
 # === GAME INITIALIZATION ===
 # Wait for map data
+log.info("Waiting for map...")
 while network.map_data is None:
-    log.info("Waiting for map...")
+    continue
+log.info("Received map")
 
 map_info = network.map_data
 map_obj = Map(map_info['grid'], map_info['mapX'], map_info['mapY'], map_info['mapS'], map_info["colorMap"], map_info["spawnpoint"])
@@ -102,6 +104,10 @@ def keyboard_up(key, x, y):
 
 # === DISPLAY FUNCTION ===
 def display():
+    if not network.running:
+        log.warning("Server disconnected. Exiting client.")
+        os._exit(0)  # Force exit immediately (no need to keep GLUT running)
+        
     global last_time
     current_time = time.time()
     delta_time = current_time - last_time
