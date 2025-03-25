@@ -1,7 +1,7 @@
 ###############################################################################
 #                                   IMPORTS                                   #
 ###############################################################################
-from alive_progress import alive_bar
+#from alive_progress import alive_bar
 from logger import get_logger
 from raycaster import Map, Player, Renderer
 from OpenGL.GL import *
@@ -38,10 +38,10 @@ def get_env_str(key, default):
 FOV = get_env_int("RAYCASTER_FOV", 80)
 NUM_RAYS = get_env_int("RAYCASTER_NUM_RAYS",120)
 MAX_DISTANCE = get_env_int("RAYCASTER_MAX_DISTANCE",500)
-KEY_FORWARD = get_env_str("KEY_FORWARD",'W')
-KEY_LEFT = get_env_str("KEY_LEFT",'A')
-KEY_BACKWARD = get_env_str("KEY_BACKWARD",'S')
-KEY_RIGHT = get_env_str("KEY_RIGHT",'D')
+KEY_FORWARD = get_env_str("KEY_FORWARD",'w')
+KEY_LEFT = get_env_str("KEY_LEFT",'a')
+KEY_BACKWARD = get_env_str("KEY_BACKWARD",'s')
+KEY_RIGHT = get_env_str("KEY_RIGHT",'d')
 MAP_MINIMAP_SIZE = get_env_int("MAP_MINIMAP_SIZE",4)
 MAP_MINIMAP_OPACITY = get_env_int("MAP_MINIMAP_OPACITY",128)
 
